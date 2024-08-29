@@ -96,3 +96,11 @@ display_image_with_title(col4, "superstore")
 
 # Add shadow boxes around images
 st.markdown("<style>img {box-shadow: 5px 5px 5px grey;}</style>", unsafe_allow_html=True)
+
+st.markdown("---")  
+st.markdown(
+    "<footer style='text-align: center; color: gray;'>"
+    "Powered by Dataverze | © 2024"
+    "</footer>",
+    unsafe_allow_html=True
+)

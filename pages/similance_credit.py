@@ -132,3 +132,11 @@ def credit_generate_form():
 
 
 credit_generate_form()
+
+st.markdown("---")  
+st.markdown(
+    "<footer style='text-align: center; color: gray;'>"
+    "Powered by Dataverze | © 2024"
+    "</footer>",
+    unsafe_allow_html=True
+)
