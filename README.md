@@ -13,7 +13,7 @@ Each demo has 3 data files, for each demo name <demo>
 
 ## Pre-Requisites:
 1. JDK(Java Development Kit): Version>=11.0.22
-2. Python: Version>=3.10.12
+2. Python: Version>=3.8
    
 ## To run streamlit app locally(For ubuntu):
 1. Clone the repository:
