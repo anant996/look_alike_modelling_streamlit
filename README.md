@@ -61,7 +61,7 @@ Each demo has 3 data files, for each demo name <demo>
    ```
    If you encounter file watcher error, you could use the below command:
    ```
-   streamlit run landing_page.py --server.fileWatcherType="None"
+   streamlit run landing_page.py --server.fileWatcherType="auto"
    ```
 5. The other pages used are in [pages/](pages/) directory.
 
