@@ -49,7 +49,7 @@ import streamlit as st
 
 import streamlit as st
 from langchain_community.vectorstores import Chroma
-from src.utils.functions import get_row_as_text, hf_embeddings, run_query
+from src.utils.functions import get_row_as_text, hf_embeddings
 from PIL import Image  # Import the Image class from the PIL module
 
 st.set_page_config(page_title='Similance')
