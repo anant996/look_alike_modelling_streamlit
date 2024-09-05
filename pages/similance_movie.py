@@ -1,7 +1,6 @@
 import pandas as pd
 import sqlite3
 from io import StringIO
-from pyspark.sql import SparkSession
 
 __import__('pysqlite3')
 import sys
@@ -11,8 +10,6 @@ connection = sqlite3.connect('cache.db', timeout=100)
 import os
 import sys
 
-os.environ['PYSPARK_PYTHON'] = sys.executable
-os.environ['PYSPARK_DRIVER_PYTHON'] = sys.executable
 import streamlit as st
 from langchain_community.vectorstores import Chroma
 from src.utils.functions import get_row_as_text, hf_embeddings
@@ -56,8 +53,9 @@ if 'vdb_movie' not in st.session_state:
     st.session_state.vdb_movie = vdb_movie
 
 
-def get_movie_retrieved_df(retriever, val_df, spark):
-    input_rows = val_df.rdd.map(lambda x: x.row_as_text).collect()
+def get_movie_retrieved_df(retriever, val_df, pd):
+    input_rows = val_df["row_as_text"].tolist()
+
     relevant_rows = []
 
     for i in range(0, len(input_rows)):
@@ -69,9 +67,10 @@ def get_movie_retrieved_df(retriever, val_df, spark):
             input_rows[i] + f"; Target: {max(target)}")
 
     converted_rows = [dict(pair.split(": ") for pair in row.split("; ")) for row in relevant_rows]
-    generated_df = spark.createDataFrame(converted_rows).distinct()  # .filter(F.col("Target") == "1")
+    generated_df = pd.DataFrame(converted_rows).drop_duplicates()
+
     # return input_df.join(generated_df, how="inner", on=["infogroup_id", "mapped_contact_id_cont"])
-    generated_df.show()
+    print(generated_df.head())
     st.write("Generated look-alike audiences.")
     st.write(generated_df)
     return generated_df
@@ -85,15 +84,14 @@ def generate_look_alike_movie(uploaded_file, k):
             pandas_df = pd.read_csv(csv_file, header=0)[rows_to_convert_movie]
             st.markdown("""Uploaded Data""")
             st.write(pandas_df)
-            spark = SparkSession.builder.appName("example").getOrCreate()
-            input_df = spark.createDataFrame(pandas_df)
+            input_df = pd.DataFrame(pandas_df)
     else:
         raise Exception("File format {uploaded_file.name.split('.')[-1]} not supported")
 
     test_df = get_row_as_text(input_df, rows_to_convert_movie)
 
     retriever = st.session_state.vdb_movie.as_retriever(search_kwargs={"k": int(k)})
-    generated_df = get_movie_retrieved_df(retriever, test_df, spark).drop("Target")
+    generated_df = get_movie_retrieved_df(retriever, test_df, pd).drop(columns=["Target"])
     return generated_df
 
 

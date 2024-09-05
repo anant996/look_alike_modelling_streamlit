@@ -44,9 +44,9 @@ def create_retriever(vec_df, db_dir, k, step=500):
 
 # Function to get row as text
 def get_row_as_text(input_df, columns):
-    exprs = [F.concat(F.lit(str(col_name)), F.lit(': '), F.col(col_name).cast("string")) for col_name in columns]
-    return input_df.withColumn("row_as_text", F.concat_ws("; ", *exprs))
-
+    input_df["row_as_text"] = input_df[columns].apply(lambda row: "; ".join([f"{col_name}: {row[col_name]}" for col_name in columns]), axis=1)
+    return input_df
+    
 
 # Function to get retrieved DataFrame
 def get_retrieved_df(vec_df, retriever, k):

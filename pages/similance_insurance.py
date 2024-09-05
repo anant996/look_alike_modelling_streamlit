@@ -1,6 +1,5 @@
 import pandas as pd
 import sqlite3
-from pyspark.sql import SparkSession
 
 __import__('pysqlite3')
 import sys
@@ -10,12 +9,11 @@ connection = sqlite3.connect('cache.db', timeout=100)
 import os
 import sys
 
-os.environ['PYSPARK_PYTHON'] = sys.executable
-os.environ['PYSPARK_DRIVER_PYTHON'] = sys.executable
 import streamlit as st
 from langchain_community.vectorstores import Chroma
 from src.utils.functions import get_row_as_text, hf_embeddings
 from PIL import Image  # Import the Image class from the PIL module
+import pandas as pd
 
 st.set_page_config(page_title='Similance')
 title_container = st.container()
@@ -62,8 +60,10 @@ if 'vdb_insurance' not in st.session_state:
     st.session_state.vdb_insurance = vdb_insurance
 
 
-def get_insurance_retrieved_df(retriever, val_df, spark):
-    input_rows = val_df.rdd.map(lambda x: x.row_as_text).collect()
+def get_insurance_retrieved_df(retriever, val_df, pd):
+    # input_rows = val_df.rdd.map(lambda x: x.row_as_text).collect()
+    input_rows = val_df["row_as_text"].tolist()
+
     relevant_rows = []
 
     for i in range(0, len(input_rows)):
@@ -72,7 +72,8 @@ def get_insurance_retrieved_df(retriever, val_df, spark):
                 relevant_row.page_content + f"; Id: {relevant_row.metadata['Id']}; charges_bucket_label: {relevant_row.metadata['charges_bucket_label']}")
 
     converted_rows = [dict(pair.split(": ") for pair in row.split("; ")) for row in relevant_rows]
-    generated_df = spark.createDataFrame(converted_rows).distinct()
+    generated_df = pd.DataFrame(converted_rows).drop_duplicates()
+
     # return input_df.join(generated_df, how="inner", on=["infogroup_id", "mapped_contact_id_cont"])
     return generated_df
 
@@ -80,13 +81,11 @@ def get_insurance_retrieved_df(retriever, val_df, spark):
 def generate_look_alike_insurance(pandas_df, k):
     st.write("""Input Data""")
     st.write(pandas_df)
-    spark = SparkSession.builder.appName("example").getOrCreate()
-    input_df = spark.createDataFrame(pandas_df)
+    input_df = pd.DataFrame(pandas_df)
 
     test_df = get_row_as_text(input_df, rows_to_convert_insurance)
     retriever = st.session_state.vdb_insurance.as_retriever(search_kwargs={"k": int(k)})
-    generated_df = get_insurance_retrieved_df(retriever, test_df, spark)
-    generated_df.show()
+    generated_df = get_insurance_retrieved_df(retriever, test_df, pd)
     return generated_df
 
 
