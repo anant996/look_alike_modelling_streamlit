@@ -1,10 +1,16 @@
 # lookalike_model
 lookalike model for finding audience similar to seed audience
 
-Link to Streamlit UI: [Similance Demos](https://similance-demos.streamlit.app/)
+Link to Streamlit UI: [Similance Demos](https://similance.streamlit.app/)
 
 When asked to upload test data, you can find data here:
 [src/resources/data/](src/resources/data/)
+
+All the data has been taken from kaggle, you can find the link below:
+ - Credit card: https://www.kaggle.com/datasets/anwarsan/credit-card-bank-churn
+ - Insurance: https://www.kaggle.com/datasets/mirichoi0218/insurance
+ - Movie: https://www.kaggle.com/datasets/tejashvi14/tour-travels-customer-churn-prediction
+ - Superstore: https://www.kaggle.com/datasets/imakash3011/customer-personality-analysis
 
 Each demo has 3 data files, for each demo name <demo>
  - demo_master.csv is processed file that contains train data (data used for creating vector store)
