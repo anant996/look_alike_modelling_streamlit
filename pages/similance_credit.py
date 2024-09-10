@@ -9,7 +9,7 @@ sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
 # connection = sqlite3.connect('cache.db', timeout=100)
 import os
 import sys
-
+from chromaviz import visualize_collection
 import streamlit as st
 from langchain_community.vectorstores import Chroma
 from src.utils.functions import get_row_as_text, hf_embeddings
@@ -128,6 +128,10 @@ def credit_generate_form():
 
 
 credit_generate_form()
+if st.button("Visualize Embeddings"):
+    # db_dir = "src/resources/embeddings/insurance"
+    # vdb = Chroma(persist_directory=db_dir, embedding_function=hf_embeddings)
+    visualize_collection(st.session_state.vdb_credit._collection)
 
 st.markdown("---")  
 st.markdown(

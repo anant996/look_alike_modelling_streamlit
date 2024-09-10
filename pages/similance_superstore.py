@@ -2,7 +2,7 @@ import glob
 import json
 import re
 from datetime import datetime
-
+from chromaviz import visualize_collection
 import pandas as pd
 import sqlite3
 from io import StringIO
@@ -180,7 +180,10 @@ def superstore_generate_form():
 
 
 superstore_generate_form()
-
+if st.button("Visualize Embeddings"):
+    # db_dir = "src/resources/embeddings/insurance"
+    # vdb = Chroma(persist_directory=db_dir, embedding_function=hf_embeddings)
+    visualize_collection(st.session_state.vdb_superstore._collection)
 
 def delete_images(image_paths):
     deleted_count = 0
