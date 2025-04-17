@@ -7,7 +7,7 @@ import pandas as pd
 import sqlite3
 from io import StringIO
 # from langchain_openai import ChatOpenAI, OpenAI
-from pyspark.sql import SparkSession
+# from pyspark.sql import SparkSession
 # from langchain_experimental.agents import create_pandas_dataframe_agent
 # from streamlit_image_select import image_select
 
@@ -43,13 +43,13 @@ import os
 import sys
 import streamlit as st
 
-os.environ['PYSPARK_PYTHON'] = sys.executable
-os.environ['PYSPARK_DRIVER_PYTHON'] = sys.executable
+# os.environ['PYSPARK_PYTHON'] = sys.executable
+# os.environ['PYSPARK_DRIVER_PYTHON'] = sys.executable
 # os.environ['OPENAI_API_KEY'] = st.secrets["OPENAI_API_KEY"]
 
 import streamlit as st
 from langchain_community.vectorstores import Chroma
-from src.utils.functions import get_row_as_text, hf_embeddings, run_query
+from src.utils.functions import get_row_as_text, hf_embeddings
 from PIL import Image  # Import the Image class from the PIL module
 
 st.set_page_config(page_title='Similance')
@@ -94,15 +94,15 @@ if 'vdb_superstore' not in st.session_state:
 
 
 def save_superstore_output():
-    st.session_state.superstore_output_df.toPandas().to_csv("src/resources/data/superstore_output.csv", index=False)
+    st.session_state.superstore_output_df.to_csv("src/resources/data/superstore_output.csv", index=False)
 
 
 def read_superstore_output():
     return pd.read_csv("src/resources/data/superstore_output.csv", header=0)
 
 
-def get_superstore_retrieved_df(retriever, val_df, spark):
-    input_rows = val_df.rdd.map(lambda x: x.row_as_text).collect()
+def get_superstore_retrieved_df(retriever, val_df, pd):
+    input_rows = val_df["row_as_text"].tolist()
     relevant_rows = []
 
     for i in range(0, len(input_rows)):
@@ -111,7 +111,7 @@ def get_superstore_retrieved_df(retriever, val_df, spark):
                 relevant_row.page_content + f"; Id: {relevant_row.metadata['Id']}")
 
     converted_rows = [dict(pair.split(": ") for pair in row.split("; ")) for row in relevant_rows]
-    generated_df = spark.createDataFrame(converted_rows).distinct()
+    generated_df = pd.DataFrame(converted_rows).drop_duplicates()
     # return input_df.join(generated_df, how="inner", on=["infogroup_id", "mapped_contact_id_cont"])
     return generated_df
 
@@ -124,16 +124,15 @@ def generate_look_alike_superstore(uploaded_file, k):
             pandas_df = pd.read_csv(csv_file, header=0)[rows_to_convert_superstore]
             st.markdown("""Uploaded Data""")
             st.write(pandas_df)
-            spark = SparkSession.builder.appName("example").getOrCreate()
-            input_df = spark.createDataFrame(pandas_df)
+            input_df = pd.DataFrame(pandas_df)
     else:
         raise Exception("File format {uploaded_file.name.split('.')[-1]} not supported")
 
     test_df = get_row_as_text(input_df, rows_to_convert_superstore)
 
     retriever = st.session_state.vdb_superstore.as_retriever(search_kwargs={"k": int(k)})
-    generated_df = get_superstore_retrieved_df(retriever, test_df, spark)
-    generated_df.show()
+    generated_df = get_superstore_retrieved_df(retriever, test_df, pd)
+    print(generated_df.head())
     return generated_df
 
 
@@ -163,7 +162,7 @@ def superstore_generate_form():
                                 generated_df = read_superstore_output()
                         st.write("Generated look-alike audiences.")
                         st.session_state.superstore_output_df = generated_df
-                        st.write(st.session_state.superstore_output_df.drop("Response"))
+                        st.write(st.session_state.superstore_output_df.drop(columns=["Response"]))
                         save_superstore_output()
                     except AttributeError as e:
                         # Handling the AttributeError
